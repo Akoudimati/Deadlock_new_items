@@ -1,0 +1,1283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deadlock - Weapons Items</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1a1a1a;
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+        
+        .side-menu {
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 60px;
+            background-color: #1a1a1a;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 1000;
+            border-right: 1px solid #333;
+        }
+        
+        .side-button {
+            width: 40px;
+            height: 40px;
+            margin: 10px 0;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-size: 20px;
+            color: #fff;
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-decoration: none;
+        }
+        
+        .side-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        
+        .weapon-button {
+            background-color: #f0c239;
+        }
+        
+        .vitality-button {
+            background-color: #4caf50;
+        }
+        
+        .spirit-button {
+            background-color: #9c27b0;
+        }
+        
+        .search-button {
+            background-color: #333;
+            margin-top: auto;
+            margin-bottom: 20px;
+        }
+        
+        .content-container {
+            margin-left: 60px;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            width: calc(100% - 60px);
+        }
+        
+        .shop-header {
+            padding: 10px 0;
+            text-align: center;
+            background-color: #000;
+            border-bottom: 1px solid #333;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            flex-direction: column;
+        }
+        
+        .shop-title {
+            font-family: 'Impact', sans-serif;
+            color: #f0c239;
+            font-size: 32px;
+            margin: 0;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+        
+        .shop-subtitle {
+            color: #f0c239;
+            margin: 0;
+            font-size: 14px;
+        }
+        
+        .main-container {
+            width: 100%;
+            margin: 0;
+            padding: 5px;
+        }
+        
+        .category-title {
+            color: #f0c239;
+            text-align: center;
+            font-size: 24px;
+            margin: 10px 0;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px rgba(240, 194, 57, 0.5);
+            width: 100%;
+            padding: 8px 0;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+        
+        .price-category {
+            margin-bottom: 20px;
+            width: 100%;
+        }
+        
+        .price-title {
+            color: #f0c239;
+            font-size: 18px;
+            margin: 0 0 10px;
+            padding: 3px 10px;
+            background-color: rgba(240, 194, 57, 0.2);
+            border-left: 3px solid #f0c239;
+            display: inline-block;
+        }
+        
+        .items-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 6px;
+            margin-bottom: 12px;
+            width: 100%;
+        }
+        
+        .item {
+            position: relative;
+            background-color: #2a2a2a;
+            border-radius: 6px;
+            padding: 6px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+            overflow: visible;
+        }
+        
+        .item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
+            z-index: 10;
+        }
+        
+        /* Relationship highlighting */
+        body.highlight-mode .items-grid .item {
+            transition: all 0.3s ease;
+            filter: blur(2px) grayscale(80%);
+            opacity: 0.5;
+        }
+        
+        body.highlight-mode .items-grid .item.highlighted {
+            filter: blur(0) grayscale(0);
+            opacity: 1;
+            transform: scale(1.05);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+            z-index: 10;
+        }
+        
+        .item-image {
+            width: 120px;
+            height: 120px;
+            border-radius: 5px;
+            background-color: rgba(240, 194, 57, 0.1);
+            border: 1px solid #f0c239;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 8px;
+            overflow: hidden;
+            position: relative;
+            padding: 0;
+            transition: all 0.3s ease;
+        }
+        
+        .item-image img {
+            max-width: 98%;
+            max-height: 98%;
+            transition: all 0.3s ease;
+            object-fit: contain;
+        }
+        
+        .item:hover .item-image img {
+            max-width: 98%;
+            max-height: 98%;
+            transform: none;
+        }
+        
+        .mega-hover-image {
+            position: absolute;
+            visibility: hidden;
+            opacity: 0;
+            z-index: 2000;
+            pointer-events: none;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.8);
+            border-radius: 10px;
+            background-color: rgba(26, 26, 26, 0.95);
+            border: 2px solid #f0c239;
+            padding: 15px;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            transform: translateY(10px);
+        }
+        
+        .mega-hover-image img {
+            max-width: 280px;
+            max-height: 280px;
+            border-radius: 5px;
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 5px;
+            object-fit: contain;
+            display: block;
+        }
+        
+        .item:hover .mega-hover-image {
+            visibility: visible;
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .mega-hover-title {
+            color: #f0c239;
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+            margin: 0 0 10px 0;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(240, 194, 57, 0.3);
+        }
+        
+        .item-name {
+            text-align: center;
+            font-size: 13px;
+            margin-top: 5px;
+            color: #fff;
+            font-weight: bold;
+        }
+        
+        .item:hover .item-name {
+            color: #f0c239;
+        }
+        
+        .active-badge {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            background-color: #ff9800;
+            color: #000;
+            font-size: 8px;
+            font-weight: bold;
+            padding: 2px 4px;
+            border-radius: 3px;
+            text-transform: uppercase;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            z-index: 5;
+        }
+        
+        /* Loading animation */
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #1a1a1a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+        }
+        
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255,255,255,0.1);
+            border-radius: 50%;
+            border-top-color: #f0c239;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Mobile responsive */
+        @media (max-width: 1400px) {
+            .items-grid {
+                grid-template-columns: repeat(auto-fill, minmax(95px, 1fr));
+            }
+            .item-image {
+                width: 115px;
+                height: 115px;
+            }
+        }
+        
+        @media (max-width: 1200px) {
+            .items-grid {
+                grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+            }
+            .item-image {
+                width: 110px;
+                height: 110px;
+            }
+        }
+        
+        @media (max-width: 992px) {
+            .items-grid {
+                grid-template-columns: repeat(auto-fill, minmax(85px, 1fr));
+            }
+            .item-image {
+                width: 105px;
+                height: 105px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .side-menu {
+                width: 50px;
+            }
+            .side-button {
+                width: 35px;
+                height: 35px;
+                font-size: 16px;
+            }
+            .content-container {
+                margin-left: 50px;
+                width: calc(100% - 50px);
+            }
+            .items-grid {
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            }
+            .item-image {
+                width: 95px;
+                height: 95px;
+            }
+            .mega-hover-image img {
+                max-width: 200px;
+                max-height: 200px;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .items-grid {
+                grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+                gap: 8px;
+            }
+            .item-image {
+                width: 85px;
+                height: 85px;
+            }
+            .mega-hover-image img {
+                max-width: 180px;
+                max-height: 180px;
+            }
+        }
+        
+        /* Add page sections with less vertical padding */
+        .category-section {
+            padding: 0 5px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading screen -->
+    <div class="loading">
+        <div class="loading-spinner"></div>
+    </div>
+    
+    <div class="side-menu">
+        <a href="index.html" class="side-button weapon-button" title="Home">🏠</a>
+       
+        <a href="vitality.html" class="side-button vitality-button" title="Vitality">➕</a>
+        <a href="spirit.html" class="side-button spirit-button" title="Spirit">✧</a>
+        
+        <div class="side-button search-button" title="Search">🔍</div>
+    </div>
+
+    <div class="content-container">
+        <div class="shop-header">
+            <h1 class="shop-title">WEAPONS</h1>
+            <p class="shop-subtitle">FAIRFAX ARTILLERY BOUGHT AND SOLD</p>
+        </div>
+        
+        <div class="main-container">
+            <h2 class="category-title">Weapons</h2>
+            
+            <!-- 800 Gold Section -->
+            <div class="price-category">
+                <h3 class="price-title">$ 800 Gold</h3>
+                <div class="items-grid">
+                    <!-- Extended Magazine -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/weapons/800/extended.png" alt="Extended Magazine">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Extended Magazine</div>
+                            <img src="images/weapons/hv_800/Extended_Magazine.png" alt="Extended Magazine">
+                        </div>
+                        <div class="item-name">Extended Magazine</div>
+                    </div>
+                    
+                    <!-- Rapid Rounds -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/weapons/800/Rapid_rounds.png" alt="Rapid Rounds">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Rapid Rounds</div>
+                            <img src="images/weapons/hv_800/Rapid Rounds.png" alt="Rapid Rounds">
+                        </div>
+                        <div class="item-name">Rapid Rounds</div>
+                    </div>
+                    
+                    <!-- Monster Rounds -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/weapons/800/Monster_rounds.png" alt="Monster Rounds">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Monster Rounds</div>
+                            <img src="images/weapons/hv_800/Monster Rounds.png" alt="Monster Rounds">
+                        </div>
+                        <div class="item-name">Monster Rounds</div>
+                    </div>
+                    
+                    <!-- High Velocity -->
+                    <div class="item">
+                        <div class="active-badge">ACTIVE</div>
+                        <div class="item-image">
+                            <img src="images/weapons/800/high-velocity.png" alt="High Velocity">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">High Velocity</div>
+                            <img src="images/weapons/hv_800/High-Velocity Rounds.png" alt="High Velocity">
+                        </div>
+                        <div class="item-name">High Velocity</div>
+                    </div>
+                    
+                    <!-- Headshot Booster -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/weapons/800/headshot_booster.png" alt="Headshot Booster">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Headshot Booster</div>
+                            <img src="images/weapons/hv_800/Headshot_Booster.png" alt="Headshot Booster">
+                        </div>
+                        <div class="item-name">Headshot Booster</div>
+                    </div>
+                    
+                    <!-- Close Quarters -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/weapons/800/close_quraters.png" alt="Close Quarters">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Close Quarters</div>
+                            <img src="images/weapons/hv_800/Close QuartersCloseQuarters.png" alt="Close Quarters">
+                        </div>
+                        <div class="item-name">Close Quarters</div>
+                    </div>
+                    
+                    <!-- Restorative Shot -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/weapons/800/restorative_shot.png" alt="Restorative Shot">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Restorative Shot</div>
+                            <img src="images/weapons/hv_800/Restorative Shot.png" alt="Restorative Shot">
+                        </div>
+                        <div class="item-name">Restorative Shot</div>
+                    </div>
+                    
+
+                </div>
+            </div>
+            
+            <!-- 1600 Gold Section -->
+            <div class="price-category">
+                <h3 class="price-title">$ 1600 Gold</h3>
+                <div class="items-grid">
+                    <!-- Active Reload -->
+                    <div class="item">
+                        <div class="active-badge">ACTIVE</div>
+                        <div class="item-image">
+                            <img src="images/weapons/1600/Active_reload.png" alt="Active Reload">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Active Reload</div>
+                            <img src="images/weapons/hv1600/Active Reload.png" alt="Active Reload">
+                        </div>
+                        <div class="item-name">Active Reload</div>
+                    </div>
+                    
+                    <!-- Backstabber -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/weapons/1600/backtabber.png" alt="Backstabber">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Backstabber</div>
+                            <img src="images/weapons/hv1600/Backstabber.png" alt="Backstabber">
+                        </div>
+                        <div class="item-name">Backstabber</div>
+                    </div>
+                    
+                    <!-- Fleetfoot -->
+                    <div class="item">
+                        <div class="active-badge">ACTIVE</div>
+                        <div class="item-image">
+                            <img src="images/weapons/1600/fleetfoot.png" alt="Fleetfoot">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Fleetfoot</div>
+                            <img src="images/weapons/hv1600/Fleetfootj.png" alt="Fleetfoot">
+                        </div>
+                        <div class="item-name">Fleetfoot</div>
+                    </div>
+                    
+                    <!-- Intensifying Magazine -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/weapons/1600/intensitfying_magazine.png" alt="Intensifying Magazine">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Intensifying Magazine</div>
+                            <img src="images/weapons/hv1600/Intensifying_Magazine.png" alt="Intensifying Magazine">
+                        </div>
+                        <div class="item-name">Intensifying Magazine</div>
+                    </div>
+                    
+                    <!-- Kinetic Dash -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/weapons/1600/kinentic_dash.png" alt="Kinetic Dash">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Kinetic Dash</div>
+                            <img src="images/weapons/hv1600/Kinetic_Dash.png" alt="Kinetic Dash">
+                        </div>
+                        <div class="item-name">Kinetic Dash</div>
+                    </div>
+                    
+                    <!-- Long Range -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/weapons/1600/long_Range.png" alt="Long Range">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Long Range</div>
+                            <img src="images/weapons/hv1600/Long_Range;.png" alt="Long Range">
+                        </div>
+                        <div class="item-name">Long Range</div>
+                    </div>
+                    
+                    <!-- Melee Charge -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/weapons/1600/melee_charge.png" alt="Melee Charge">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Melee Charge</div>
+                            <img src="images/weapons/hv1600/Melee_Charge.png" alt="Melee Charge">
+                        </div>
+                        <div class="item-name">Melee Charge</div>
+                    </div>
+                    
+                    <!-- Opening Rounds -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/weapons/1600/opening_rounds.png" alt="Opening Rounds">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Opening Rounds</div>
+                            <img src="images/weapons/hv1600/Opening_Rounds.png" alt="Opening Rounds">
+                        </div>
+                        <div class="item-name">Opening Rounds</div>
+                    </div>
+                    
+                    <!-- Slowing Bullets -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/weapons/1600/slowing_bullets.png" alt="Slowing Bullets">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Slowing Bullets</div>
+                            <img src="images/weapons/hv1600/Slowing_Bullets.png" alt="Slowing Bullets">
+                        </div>
+                        <div class="item-name">Slowing Bullets</div>
+                    </div>
+                    
+                    <!-- Split Shot -->
+                    <div class="item">
+                        <div class="active-badge">ACTIVE</div>
+                        <div class="item-image">
+                            <img src="images/weapons/1600/split_shot.png" alt="Split Shot">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Split Shot</div>
+                            <img src="images/weapons/hv1600/Split_Shot.png" alt="Split Shot">
+                        </div>
+                        <div class="item-name">Split Shot</div>
+                    </div>
+                    
+                    <!-- Spirit Shredder Bullets -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/weapons/1600/spirit shredder bullets.png" alt="Spirit Shredder Bullets">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Spirit Shredder Bullets</div>
+                            <img src="images/weapons/hv1600/Spirit_Shredder_Bullets.png" alt="Spirit Shredder Bullets">
+                        </div>
+                        <div class="item-name">Spirit Shredder Bullets</div>
+                    </div>
+                    
+                    <!-- Titanic Magazine -->
+                    <div class="item">
+                        <div class="active-badge">NEW</div>
+                        <div class="item-image">
+                            <img src="images/weapons/1600/titanicMagaine.png" alt="Titanic Magazine">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Titanic Magazine</div>
+                            <img src="images/weapons/hv1600/Titanic_Magazine.png" alt="Titanic Magazine">
+                        </div>
+                        <div class="item-name">Titanic Magazine</div>
+                    </div>
+                    
+                    <!-- Swift Striker -->
+                    <div class="item">
+                        <div class="active-badge">NEW</div>
+                        <div class="item-image">
+                            <img src="images/weapons/1600/swift_striker.png" alt="Swift Striker">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Swift Striker</div>
+                            <img src="images/weapons/hv1600/Swift_Striker.png" alt="Swift Striker">
+                        </div>
+                        <div class="item-name">Swift Striker</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 3200 Gold Section -->
+            <div class="price-category">
+                <h3 class="price-title">$ 3200 Gold</h3>
+                <div class="items-grid">
+                    <!-- Alchemical Fire -->
+                    <div class="item">
+                        <div class="active-badge">ACTIVE</div>
+                        <div class="item-image">
+                            <img src="images/weapons/3200/Alchmical_fire.png" alt="Alchemical Fire">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Alchemical Fire</div>
+                            <img src="images/weapons/hv_3200/Alchemical_Fire.png" alt="Alchemical Fire">
+                        </div>
+                        <div class="item-name">Alchemical Fire</div>
+                    </div>
+                    
+                    <!-- Berserker -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/weapons/3200/Berserker.png" alt="Berserker">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Berserker</div>
+                            <img src="images/weapons/hv_3200/Berserker.png" alt="Berserker">
+                        </div>
+                        <div class="item-name">Berserker</div>
+                    </div>
+                    
+                    <!-- Blood Tribute -->
+                    <div class="item">
+                        <div class="active-badge">ACTIVE</div>
+                        <div class="item-image">
+                            <img src="images/weapons/3200/blood_Tribute.png" alt="Blood Tribute">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Blood Tribute</div>
+                            <img src="images/weapons/hv_3200/BloodTribute.png" alt="Blood Tribute">
+                        </div>
+                        <div class="item-name">Blood Tribute</div>
+                    </div>
+                    
+                    <!-- Burst Fire -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/weapons/3200/burst_fire.png" alt="Burst Fire">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Burst Fire</div>
+                            <img src="images/weapons/hv_3200/Burst_Fire.png" alt="Burst Fire">
+                        </div>
+                        <div class="item-name">Burst Fire</div>
+                    </div>
+                    
+                    <!-- Cultist Sacrifice -->
+                    <div class="item">
+                        <div class="active-badge">ACTIVE</div>
+                        <div class="item-image">
+                            <img src="images/weapons/3200/cultist_sarcrifice.png" alt="Cultist Sacrifice">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Cultist Sacrifice</div>
+                            <img src="images/weapons/hv_3200/Cultist_Sacrifice.png" alt="Cultist Sacrifice">
+                        </div>
+                        <div class="item-name">Cultist Sacrifice</div>
+                    </div>
+                    
+                    <!-- Escalating Resilience -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/weapons/3200/escalating_resilience.png" alt="Escalating Resilience">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Escalating Resilience</div>
+                            <img src="images/weapons/hv_3200/EscalatingResilience.png" alt="Escalating Resilience">
+                        </div>
+                        <div class="item-name">Escalating Resilience</div>
+                    </div>
+                    
+                    <!-- Express Shot -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/weapons/3200/express_shot.png" alt="Express Shot">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Express Shot</div>
+                            <img src="images/weapons/hv_3200/Express_Shot.png" alt="Express Shot">
+                        </div>
+                        <div class="item-name">Express Shot</div>
+                    </div>
+                    
+                    <!-- Headhunter -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/weapons/3200/headhunter.png" alt="Headhunter">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Headhunter</div>
+                            <img src="images/weapons/hv_3200/Headhunter.png" alt="Headhunter">
+                        </div>
+                        <div class="item-name">Headhunter</div>
+                    </div>
+                    
+                    <!-- Heroic Aura -->
+                    <div class="item">
+                        <div class="active-badge">ACTIVE</div>
+                        <div class="item-image">
+                            <img src="images/weapons/3200/heroic_Aura.png" alt="Heroic Aura">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Heroic Aura</div>
+                            <img src="images/weapons/hv_3200/Hunter's_Aura.png" alt="Heroic Aura">
+                        </div>
+                        <div class="item-name">Heroic Aura</div>
+                    </div>
+                    
+                    <!-- Hollow Point -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/weapons/3200/Hollow_polint.png" alt="Hollow Point">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Hollow Point</div>
+                            <img src="images/weapons/hv_3200/Hollow_Point.png" alt="Hollow Point">
+                        </div>
+                        <div class="item-name">Hollow Point</div>
+                    </div>
+                    
+                    <!-- Hunter's Aura -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/weapons/3200/hunter_Aura.png" alt="Hunter's Aura">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Hunter's Aura</div>
+                            <img src="images/weapons/hv_3200/Hunter's_Aura.png" alt="Hunter's Aura">
+                        </div>
+                        <div class="item-name">Hunter's Aura</div>
+                    </div>
+                    
+                    <!-- Point Blank -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/weapons/3200/point_blank.png" alt="Point Blank">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Point Blank</div>
+                            <img src="images/weapons/hv_3200/Point_Blank.png" alt="Point Blank">
+                        </div>
+                        <div class="item-name">Point Blank</div>
+                    </div>
+                    
+                    <!-- Sharpshooter -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/weapons/3200/sharpshooter.png" alt="Sharpshooter">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Sharpshooter</div>
+                            <img src="images/weapons/hv_3200/Sharpshooter.png" alt="Sharpshooter">
+                        </div>
+                        <div class="item-name">Sharpshooter</div>
+                    </div>
+                    
+                    <!-- Spirit Rend -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/weapons/3200/Spirit_rend.png" alt="Spirit Rend">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Spirit Rend</div>
+                            <img src="images/weapons/hv_3200/Spirit_Rend.png" alt="Spirit Rend">
+                        </div>
+                        <div class="item-name">Spirit Rend</div>
+                    </div>
+                    
+                    <!-- Tesla Bullets -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/weapons/3200/teska_bullets.png" alt="Tesla Bullets">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Tesla Bullets</div>
+                            <img src="images/weapons/hv_3200/TesIa_Bullets.png" alt="Tesla Bullets">
+                        </div>
+                        <div class="item-name">Tesla Bullets</div>
+                    </div>
+                    
+                    <!-- Toxic Bullets -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/weapons/3200/toxix_bullets.png" alt="Toxic Bullets">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Toxic Bullets</div>
+                            <img src="images/weapons/hv_3200/Toxic_Bullets.png" alt="Toxic Bullets">
+                        </div>
+                        <div class="item-name">Toxic Bullets</div>
+                    </div>
+                    
+                    <!-- Weighted Shots -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/weapons/3200/weighted_shots.png" alt="Weighted Shots">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Weighted Shots</div>
+                            <img src="images/weapons/hv_3200/Weighted_Shots.png" alt="Weighted Shots">
+                        </div>
+                        <div class="item-name">Weighted Shots</div>
+                    </div>
+                    
+                    <!-- Swift Striker -->
+                   
+                </div>
+            </div>
+            
+            <!-- 6400 Gold Section -->
+            <div class="price-category">
+                <h3 class="price-title">$ 6400 Gold - Experts Only</h3>
+                <div class="items-grid">
+                    <!-- Armor Piercing Rounds -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/weapons/6400/armor_plerdrg_rounds.png" alt="Armor Piercing Rounds">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Armor Piercing Rounds</div>
+                            <img src="images/weapons/hv_6400/Armor_Piercing_Rounds.png" alt="Armor Piercing Rounds">
+                        </div>
+                        <div class="item-name">Armor Piercing Rounds</div>
+                    </div>
+                    
+                    <!-- Capacitor -->
+                    <div class="item">
+                        <div class="active-badge">ACTIVE</div>
+                        <div class="item-image">
+                            <img src="images/weapons/6400/Capacitor.png" alt="Capacitor">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Capacitor</div>
+                            <img src="images/weapons/hv_6400/Capacitor.png" alt="Capacitor">
+                        </div>
+                        <div class="item-name">Capacitor</div>
+                    </div>
+                    
+                    <!-- Crippling Headshot -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/weapons/6400/Crippling_Headshot.png" alt="Crippling Headshot">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Crippling Headshot</div>
+                            <img src="images/weapons/hv_6400/Crippling_Headshot.png" alt="Crippling Headshot">
+                        </div>
+                        <div class="item-name">Crippling Headshot</div>
+                    </div>
+                    
+                    <!-- Crushing Fists -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/weapons/6400/Crushing_Fists.png" alt="Crushing Fists">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Crushing Fists</div>
+                            <img src="images/weapons/hv_6400/Crushing_Fists.png" alt="Crushing Fists">
+                        </div>
+                        <div class="item-name">Crushing Fists</div>
+                    </div>
+                    
+                    <!-- Frenzy -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/weapons/6400/Frenzy.PNG" alt="Frenzy">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Frenzy</div>
+                            <img src="images/weapons/hv_6400/Frenzy.png" alt="Frenzy">
+                        </div>
+                        <div class="item-name">Frenzy</div>
+                    </div>
+                    
+                    <!-- Glass Cannon -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/weapons/6400/Glass_Cannon.png" alt="Glass Cannon">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Glass Cannon</div>
+                            <img src="images/weapons/hv_6400/Glass_Cannon.png" alt="Glass Cannon">
+                        </div>
+                        <div class="item-name">Glass Cannon</div>
+                    </div>
+                    
+                    <!-- Lucky Shot -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/weapons/6400/Lucky_Shot.png" alt="Lucky Shot">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Lucky Shot</div>
+                            <img src="images/weapons/hv_6400/Lucky_Shot.png" alt="Lucky Shot">
+                        </div>
+                        <div class="item-name">Lucky Shot</div>
+                    </div>
+                    
+                    <!-- Ricochet -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/weapons/6400/Lucky_Shot.png" alt="Ricochet">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Ricochet</div>
+                            <img src="images/weapons/hv_6400/Ricochet.png" alt="Ricochet">
+                        </div>
+                        <div class="item-name">Ricochet</div>
+                    </div>
+                    
+                    <!-- Shadow Weave -->
+                    <div class="item">
+                        <div class="active-badge">ACTIVE</div>
+                        <div class="item-image">
+                            <img src="images/weapons/6400/Shadow_Weave.png" alt="Shadow Weave">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Shadow Weave</div>
+                            <img src="images/weapons/hv_6400/Shadow_Weave.png" alt="Shadow Weave">
+                        </div>
+                        <div class="item-name">Shadow Weave</div>
+                    </div>
+                    
+                    <!-- Silencer -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/weapons/6400/Silencer.png" alt="Silencer">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Silencer</div>
+                            <img src="images/weapons/hv_6400/Silencer.png" alt="Silencer">
+                        </div>
+                        <div class="item-name">Silencer</div>
+                    </div>
+                    
+                    <!-- Spellslinger -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/weapons/6400/Soellslineer.png" alt="Spellslinger">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Spellslinger</div>
+                            <img src="images/weapons/hv_6400/Spellslinger.png" alt="Spellslinger">
+                        </div>
+                        <div class="item-name">Spellslinger</div>
+                    </div>
+                    
+                    <!-- Spiritual Overflow -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/weapons/6400/Spiritual_Overflow.png" alt="Spiritual Overflow">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Spiritual Overflow</div>
+                            <img src="images/weapons/hv_6400/Spiritual__Overflow.png" alt="Spiritual Overflow">
+                        </div>
+                        <div class="item-name">Spiritual Overflow</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Load item relationships from localStorage set by admin panel
+        let itemRelationships = {};
+        
+        // Load relationships from localStorage first
+        loadFromLocalStorage();
+        
+        // Set up highlighting if we have relationships
+        if (Object.keys(itemRelationships).length > 0) {
+            setupRelationshipHighlighting();
+        } else {
+            console.log('No relationship data available for weapons - create relationships in the admin panel');
+        }
+        
+        // Function to load from localStorage as fallback
+        function loadFromLocalStorage() {
+            // Check if we have saved relationships in localStorage
+            const savedWeaponsRelationships = localStorage.getItem('weaponsRelationships');
+            if (savedWeaponsRelationships) {
+                try {
+                    const adminRelationships = JSON.parse(savedWeaponsRelationships);
+                    if (adminRelationships && Object.keys(adminRelationships).length > 0) {
+                        itemRelationships = adminRelationships;
+                        console.log('Loaded weapon relationships from localStorage set by admin panel');
+                    }
+                } catch (e) {
+                    console.error('Error loading saved relationships:', e);
+                }
+            }
+        }
+        
+        // Function to load relationships from a file
+        function loadRelationshipsFromFile() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            
+            input.onchange = e => {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                
+                reader.onload = function(event) {
+                    try {
+                        const importedData = JSON.parse(event.target.result);
+                        
+                        // Check if it's the standalone format
+                        if (importedData.format === "standalone" && importedData.data) {
+                            const relationships = importedData.data;
+                            if (relationships.weapons) {
+                                itemRelationships = relationships.weapons;
+                                alert('Relationship data loaded successfully!');
+                                
+                                // If you want to save it to localStorage
+                                localStorage.setItem('weaponsRelationships', JSON.stringify(itemRelationships));
+                            } else {
+                                alert('Invalid data format: missing weapons data');
+                            }
+                        } 
+                        // Check if it's the admin export format
+                        else if (importedData.weapons) {
+                            itemRelationships = importedData.weapons;
+                            alert('Relationship data loaded successfully!');
+                            
+                            // If you want to save it to localStorage
+                            localStorage.setItem('weaponsRelationships', JSON.stringify(itemRelationships));
+                        } else {
+                            alert('Invalid relationship data format');
+                        }
+                    } catch (error) {
+                        alert('Error parsing the import file: ' + error.message);
+                    }
+                };
+                
+                reader.readAsText(file);
+            };
+            
+            input.click();
+        }
+        
+        // Add import button to the page
+        window.addEventListener('load', function() {
+            const importBtn = document.createElement('button');
+            importBtn.textContent = 'Import Relationship Data';
+            importBtn.className = 'import-btn';
+            importBtn.style.position = 'fixed';
+            importBtn.style.bottom = '20px';
+            importBtn.style.right = '20px';
+            importBtn.style.zIndex = '1000';
+            importBtn.style.backgroundColor = '#f0c239';
+            importBtn.style.color = '#000';
+            importBtn.style.border = 'none';
+            importBtn.style.padding = '10px 15px';
+            importBtn.style.borderRadius = '4px';
+            importBtn.style.cursor = 'pointer';
+            importBtn.style.fontWeight = 'bold';
+            importBtn.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
+            
+            importBtn.addEventListener('click', loadRelationshipsFromFile);
+            
+            document.body.appendChild(importBtn);
+        });
+        
+        // Preload all images to prevent flickering on hover
+        function preloadImages() {
+            const items = document.querySelectorAll('.item');
+            
+            items.forEach(item => {
+                const normalImg = item.querySelector('.item-image img');
+                const hoverImg = item.querySelector('.mega-hover-image img');
+                
+                if (normalImg && normalImg.src) {
+                    const preloadNormalImg = new Image();
+                    preloadNormalImg.src = normalImg.src;
+                }
+                
+                if (hoverImg && hoverImg.src) {
+                    const preloadHoverImg = new Image();
+                    preloadHoverImg.src = hoverImg.src;
+                }
+            });
+        }
+        
+        // Highlight related items
+        function setupRelationshipHighlighting() {
+            const items = document.querySelectorAll('.item');
+            
+            // If we don't have any relationships data, don't set up highlighting
+            if (!itemRelationships || Object.keys(itemRelationships).length === 0) {
+                console.log('No relationship data available for weapons');
+                return;
+            }
+            
+            console.log('Setting up relationship highlighting for weapons with data:', itemRelationships);
+            
+            items.forEach(item => {
+                const itemName = item.querySelector('.item-name').textContent.trim();
+                
+                item.addEventListener('mouseenter', () => {
+                    // Add highlight mode to the body
+                    document.body.classList.add('highlight-mode');
+                    
+                    // Highlight this item
+                    item.classList.add('highlighted');
+                    
+                    // Check if this item has related items
+                    if (itemRelationships[itemName]) {
+                        // Find and highlight related items
+                        const relatedItems = itemRelationships[itemName];
+                        
+                        items.forEach(otherItem => {
+                            const otherItemName = otherItem.querySelector('.item-name').textContent.trim();
+                            if (relatedItems.includes(otherItemName)) {
+                                otherItem.classList.add('highlighted');
+                            }
+                        });
+                    }
+                });
+                
+                item.addEventListener('mouseleave', () => {
+                    // Remove highlight mode
+                    document.body.classList.remove('highlight-mode');
+                    
+                    // Remove highlighted class from all items
+                    document.querySelectorAll('.item.highlighted').forEach(highlightedItem => {
+                        highlightedItem.classList.remove('highlighted');
+                    });
+                });
+            });
+        }
+
+        // Position hover images to appear next to the item
+        function setupSmartHover() {
+            const items = document.querySelectorAll('.item');
+            
+            items.forEach(item => {
+                const hoverImage = item.querySelector('.mega-hover-image');
+                
+                item.addEventListener('mouseenter', function(e) {
+                    if (!hoverImage) return;
+                    
+                    // Get item position
+                    const itemRect = item.getBoundingClientRect();
+                    const viewportWidth = window.innerWidth;
+                    const viewportHeight = window.innerHeight;
+                    
+                    // Reset any previous positioning
+                    hoverImage.style.top = '';
+                    hoverImage.style.right = '';
+                    hoverImage.style.bottom = '';
+                    hoverImage.style.left = '';
+                    hoverImage.style.transform = '';
+                    
+                    // Calculate position - we want it to appear next to the item
+                    // Check if there's more space on the right or left
+                    const spaceOnRight = viewportWidth - (itemRect.left + itemRect.width);
+                    const spaceOnLeft = itemRect.left;
+                    
+                    // Set a small offset
+                    const offset = 15;
+                    
+                    if (spaceOnRight >= 300) {
+                        // Position to the right
+                        hoverImage.style.left = `${itemRect.width + offset}px`;
+                        hoverImage.style.top = `-10px`;
+                    } else if (spaceOnLeft >= 300) {
+                        // Position to the left
+                        hoverImage.style.right = `${itemRect.width + offset}px`;
+                        hoverImage.style.top = `-10px`;
+                    } else {
+                        // Not enough space on either side, position above or below
+                        const spaceAbove = itemRect.top;
+                        const spaceBelow = viewportHeight - (itemRect.top + itemRect.height);
+                        
+                        if (spaceBelow >= 300) {
+                            // Position below
+                            hoverImage.style.top = `${itemRect.height + offset}px`;
+                            hoverImage.style.left = `50%`;
+                            hoverImage.style.transform = `translateX(-50%)`;
+                        } else {
+                            // Position above
+                            hoverImage.style.bottom = `${itemRect.height + offset}px`;
+                            hoverImage.style.left = `50%`;
+                            hoverImage.style.transform = `translateX(-50%)`;
+                        }
+                    }
+                });
+            });
+        }
+
+        // Load relationships and set up highlighting when the page loads
+        window.addEventListener('DOMContentLoaded', function() {
+            // Hide loading screen
+            setTimeout(function() {
+                document.querySelector('.loading').style.opacity = '0';
+                setTimeout(function() {
+                    document.querySelector('.loading').style.display = 'none';
+                }, 500);
+            }, 800);
+            
+            preloadImages();
+            setupSmartHover();
+            // setupRelationshipHighlighting will be called after loading data
+        });
+    </script>
+</body>
+</html>

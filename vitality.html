@@ -1,0 +1,1452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deadlock - Vitality Items</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1a1a1a;
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+        
+        .side-menu {
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 60px;
+            background-color: #1a1a1a;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 1000;
+            border-right: 1px solid #333;
+        }
+        
+        .side-button {
+            width: 40px;
+            height: 40px;
+            margin: 10px 0;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-size: 20px;
+            color: #fff;
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-decoration: none;
+        }
+        
+        .side-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        
+        .weapon-button {
+            background-color: #f0c239;
+        }
+        
+        .vitality-button {
+            background-color: #4caf50;
+        }
+        
+        .spirit-button {
+            background-color: #9c27b0;
+        }
+        
+        .search-button {
+            background-color: #333;
+            margin-top: auto;
+            margin-bottom: 20px;
+        }
+        
+        .content-container {
+            margin-left: 60px;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            width: calc(100% - 60px);
+        }
+        
+        .shop-header {
+            padding: 10px 0;
+            text-align: center;
+            background-color: #000;
+            border-bottom: 1px solid #333;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            flex-direction: column;
+        }
+        
+        .shop-title {
+            font-family: 'Impact', sans-serif;
+            color: #4caf50;
+            font-size: 32px;
+            margin: 0;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+        
+        .shop-subtitle {
+            color: #4caf50;
+            margin: 0;
+            font-size: 14px;
+        }
+        
+        .main-container {
+            width: 100%;
+            margin: 0;
+            padding: 5px;
+        }
+        
+        .category-title {
+            color: #4caf50;
+            text-align: center;
+            font-size: 24px;
+            margin: 10px 0;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+            width: 100%;
+            padding: 8px 0;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+        
+        .price-category {
+            margin-bottom: 20px;
+            width: 100%;
+        }
+        
+        .price-title {
+            color: #4caf50;
+            font-size: 18px;
+            margin: 0 0 10px;
+            padding: 3px 10px;
+            background-color: rgba(76, 175, 80, 0.2);
+            border-left: 3px solid #4caf50;
+            display: inline-block;
+        }
+        
+        .items-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 6px;
+            margin-bottom: 12px;
+            width: 100%;
+        }
+        
+        .item {
+            position: relative;
+            background-color: #2a2a2a;
+            border-radius: 6px;
+            padding: 6px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+            overflow: visible;
+        }
+        
+        .item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
+            z-index: 10;
+        }
+        
+        /* Relationship highlighting */
+        body.highlight-mode .items-grid .item {
+            transition: all 0.3s ease;
+            filter: blur(2px) grayscale(80%);
+            opacity: 0.5;
+        }
+        
+        body.highlight-mode .items-grid .item.highlighted {
+            filter: blur(0) grayscale(0);
+            opacity: 1;
+            transform: scale(1.05);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+            z-index: 10;
+        }
+        
+        .item-image {
+            width: 120px;
+            height: 120px;
+            border-radius: 5px;
+            background-color: rgba(76, 175, 80, 0.1);
+            border: 1px solid #4caf50;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 8px;
+            overflow: hidden;
+            position: relative;
+            padding: 0;
+            transition: all 0.3s ease;
+        }
+        
+        .item-image img {
+            max-width: 98%;
+            max-height: 98%;
+            transition: all 0.3s ease;
+            object-fit: contain;
+        }
+        
+        .item:hover .item-image img {
+            max-width: 98%;
+            max-height: 98%;
+            transform: none;
+        }
+        
+        .mega-hover-image {
+            position: absolute;
+            visibility: hidden;
+            opacity: 0;
+            z-index: 2000;
+            pointer-events: none;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.8);
+            border-radius: 10px;
+            background-color: rgba(26, 26, 26, 0.95);
+            border: 2px solid #4caf50;
+            padding: 15px;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            transform: translateY(10px);
+            max-width: 320px;
+        }
+        
+        .mega-hover-image img {
+            max-width: 280px;
+            max-height: 280px;
+            border-radius: 5px;
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 5px;
+            object-fit: contain;
+            display: block;
+        }
+        
+        .item:hover .mega-hover-image {
+            visibility: visible;
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .mega-hover-title {
+            color: #4caf50;
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+            margin: 0 0 10px 0;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(76, 175, 80, 0.3);
+        }
+        
+        .item-name {
+            text-align: center;
+            font-size: 13px;
+            margin-top: 5px;
+            color: #fff;
+            font-weight: bold;
+        }
+        
+        .item:hover .item-name {
+            color: #4caf50;
+        }
+        
+        .active-badge {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            background-color: #ff9800;
+            color: #000;
+            font-size: 8px;
+            font-weight: bold;
+            padding: 2px 4px;
+            border-radius: 3px;
+            text-transform: uppercase;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            z-index: 5;
+        }
+        
+        /* Loading animation */
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #1a1a1a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+        }
+        
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255,255,255,0.1);
+            border-radius: 50%;
+            border-top-color: #4caf50;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Mobile responsive */
+        @media (max-width: 1400px) {
+            .items-grid {
+                grid-template-columns: repeat(auto-fill, minmax(95px, 1fr));
+            }
+            .item-image {
+                width: 115px;
+                height: 115px;
+            }
+        }
+        
+        @media (max-width: 1200px) {
+            .items-grid {
+                grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+            }
+            .item-image {
+                width: 110px;
+                height: 110px;
+            }
+        }
+        
+        @media (max-width: 992px) {
+            .items-grid {
+                grid-template-columns: repeat(auto-fill, minmax(85px, 1fr));
+            }
+            .item-image {
+                width: 105px;
+                height: 105px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .side-menu {
+                width: 50px;
+            }
+            .side-button {
+                width: 35px;
+                height: 35px;
+                font-size: 16px;
+            }
+            .content-container {
+                margin-left: 50px;
+                width: calc(100% - 50px);
+            }
+            .items-grid {
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            }
+            .item-image {
+                width: 95px;
+                height: 95px;
+            }
+            .mega-hover-image img {
+                max-width: 250px;
+                max-height: 250px;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .items-grid {
+                grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+                gap: 8px;
+            }
+            .item-image {
+                width: 85px;
+                height: 85px;
+            }
+            .mega-hover-image img {
+                max-width: 200px;
+                max-height: 200px;
+            }
+        }
+        
+        /* Add page sections with less vertical padding */
+        .category-section {
+            padding: 0 5px;
+            margin-bottom: 10px;
+        }
+        
+        /* Smart hover positioning to prevent off-screen images */
+        .items-grid .item {
+            position: relative;
+        }
+        
+        /* REMOVED: First 2 items in each row positioning - now handled by JS
+        .items-grid .item:nth-child(7n+1) .mega-hover-image,
+        .items-grid .item:nth-child(7n+2) .mega-hover-image {
+            
+        }
+        */
+        
+        /* REMOVED: Last 2 items in each row positioning - now handled by JS
+        .items-grid .item:nth-child(7n+6) .mega-hover-image,
+        .items-grid .item:nth-child(7n) .mega-hover-image {
+            
+        }
+        */
+        
+        /* REMOVED: Last row items positioning - now handled by JS
+        .items-grid .item:nth-last-child(-n+7) .mega-hover-image {
+            
+        }
+        */
+    </style>
+</head>
+<body>
+    <!-- Loading screen -->
+    <div class="loading">
+        <div class="loading-spinner"></div>
+    </div>
+    
+    <div class="side-menu">
+        <a href="index.html" class="side-button weapon-button" title="Home">🏠</a>
+      
+        <a href="vitality.html" class="side-button vitality-button" title="Vitality">➕</a>
+        <a href="spirit.html" class="side-button spirit-button" title="Spirit">✧</a>
+       
+        <div class="side-button search-button" title="Search">🔍</div>
+    </div>
+
+    <div class="content-container">
+        <div class="shop-header">
+            <h1 class="shop-title">VITALITY</h1>
+            <p class="shop-subtitle">HEALTH AND PROTECTION ENHANCEMENTS</p>
+        </div>
+        
+        <div class="main-container">
+            <h2 class="category-title">Vitality Items</h2>
+            
+            <!-- 800 Gold Section -->
+            <div class="price-category">
+                <h3 class="price-title">$ 800 Gold</h3>
+                <div class="items-grid">
+                    <!-- Extra Stamina -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/vitality/800/Extra_Stamina.png" alt="Extra Stamina">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Extra Stamina</div>
+                            <img src="images/vitality/hv_800/Extra_Stamina.png" alt="Extra Stamina">
+                        </div>
+                        <div class="item-name">Extra Stamina</div>
+                    </div>
+                    
+                    <!-- Melee Lifesteal -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/vitality/800/Melee_Lifesteal.png" alt="Melee Lifesteal">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Melee Lifesteal</div>
+                            <img src="images/vitality/hv_800/Melee_Lifesteal.png" alt="Melee Lifesteal">
+                        </div>
+                        <div class="item-name">Melee Lifesteal</div>
+                    </div>
+                    
+                  
+                    <!-- Healing Rite -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/vitality/800/Healing_Rite.png" alt="Healing Rite">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Healing Rite</div>
+                            <img src="images/vitality/hv_800/Healing_Rite.png" alt="Healing Rite">
+                        </div>
+                        <div class="item-name">Healing Rite</div>
+                    </div>
+                    
+                    <!-- Rebuttal -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/vitality/800/Rebuttal.png" alt="Rebuttal">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Rebuttal</div>
+                            <img src="images/vitality/hv_800/Rebuttal.png" alt="Rebuttal">
+                        </div>
+                        <div class="item-name">Rebuttal</div>
+                    </div>
+                    
+                    <!-- Sprint Boots -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/vitality/800/Sprint_Boots.png" alt="Sprint Boots">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Sprint Boots</div>
+                            <img src="images/vitality/hv_800/Sprint_Boots.png" alt="Sprint Boots">
+                        </div>
+                        <div class="item-name">Sprint Boots</div>
+                    </div>
+                    
+                    <!-- Extra Regen -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/vitality/800/Extra_Regen.png" alt="Extra Regen">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Extra Regen</div>
+                            <img src="images/vitality/hv_800/Extra_Regen.png" alt="Extra Regen">
+                        </div>
+                        <div class="item-name">Extra Regen</div>
+                    </div>
+                    
+                    <!-- Extra Health -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/vitality/800/Extra_Health.png" alt="Extra Health">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Extra Health</div>
+                            <img src="images/vitality/hv_800/Extra_Health.png" alt="Extra Health">
+                        </div>
+                        <div class="item-name">Extra Health</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 1600 Gold Section -->
+            <div class="price-category">
+                <h3 class="price-title">$ 1600 Gold</h3>
+                <div class="items-grid">
+                    <!-- Weapon Shielding -->
+                    <div class="item">
+                        <div class="active-badge">ACTIVE</div>
+                        <div class="item-image">
+                            <img src="images/vitality/1600/Weapon_Shielding.png" alt="Weapon Shielding">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Weapon Shielding</div>
+                            <img src="images/vitality/hv_1600/Weapon_Shielding.png" alt="Weapon Shielding">
+                        </div>
+                        <div class="item-name">Weapon Shielding</div>
+                    </div>
+                    
+                    <!-- Spirit Shielding -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/vitality/1600/Spirit_Shielding.png" alt="Spirit Shielding">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Spirit Shielding</div>
+                            <img src="images/vitality/hv_1600/Spirit_Shielding.png" alt="Spirit Shielding">
+                        </div>
+                        <div class="item-name">Spirit Shielding</div>
+                    </div>
+                    
+                    <!-- Spirit Lifesteal -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/vitality/1600/Spirit_Lifesteal.png" alt="Spirit Lifesteal">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Spirit Lifesteal</div>
+                            <img src="images/vitality/hv_1600/Spirit_Lifesteal.png" alt="Spirit Lifesteal">
+                        </div>
+                        <div class="item-name">Spirit Lifesteal</div>
+                    </div>
+                    
+                    <!-- Return Fire -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/vitality/1600/Return_Fire.png" alt="Return Fire">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Return Fire</div>
+                            <img src="images/vitality/hv_1600/Return_Fire.png" alt="Return Fire">
+                        </div>
+                        <div class="item-name">Return Fire</div>
+                    </div>
+                    
+                    <!-- Restorative Locket -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/vitality/1600/Restorative_Locket.png" alt="Restorative Locket">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Restorative Locket</div>
+                            <img src="images/vitality/hv_1600/Restorative_Locket.png" alt="Restorative Locket">
+                        </div>
+                        <div class="item-name">Restorative Locket</div>
+                    </div>
+                    
+                    <!-- Reactive Barrier -->
+                    <div class="item">
+                        <div class="active-badge">ACTIVE</div>
+                        <div class="item-image">
+                            <img src="images/vitality/1600/Reactive_Barrier.png" alt="Reactive Barrier">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Reactive Barrier</div>
+                            <img src="images/vitality/hv_1600/Reactive_Barrier.png" alt="Reactive Barrier">
+                        </div>
+                        <div class="item-name">Reactive Barrier</div>
+                    </div>
+                    
+                    <!-- Healing Nova -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/vitality/1600/Healing_Nova.png" alt="Healing Nova">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Healing Nova</div>
+                            <img src="images/vitality/hv_1600/Healing_Nova.png" alt="Healing Nova">
+                        </div>
+                        <div class="item-name">Healing Nova</div>
+                    </div>
+                    
+                    <!-- Healing Booster -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/vitality/1600/Healine_Booster.png" alt="Healing Booster">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Healing Booster</div>
+                            <img src="images/vitality/hv_1600/Healing_Booster.png" alt="Healing Booster">
+                        </div>
+                        <div class="item-name">Healing Booster</div>
+                    </div>
+                    
+                    <!-- Healbane -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/vitality/1600/Healbane.png" alt="Healbane">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Healbane</div>
+                            <img src="images/vitality/hv_1600/Healbane.png" alt="Healbane">
+                        </div>
+                        <div class="item-name">Healbane</div>
+                    </div>
+                    
+                    <!-- Guardian Ward -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/vitality/1600/Guardian_Ward.png" alt="Guardian Ward">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Guardian Ward</div>
+                            <img src="images/vitality/hv_1600/Guardian_Ward.png" alt="Guardian Ward">
+                        </div>
+                        <div class="item-name">Guardian Ward</div>
+                    </div>
+                    
+                    <!-- Enduring Speed -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/vitality/1600/Enduring_Speed.png" alt="Enduring Speed">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Enduring Speed</div>
+                            <img src="images/vitality/hv_1600/Enduring_Speed.png" alt="Enduring Speed">
+                        </div>
+                        <div class="item-name">Enduring Speed</div>
+                    </div>
+                    
+                    <!-- Enchanter's Emblem -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/vitality/1600/Enchanter's_Emblem.png" alt="Enchanter's Emblem">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Enchanter's Emblem</div>
+                            <img src="images/vitality/hv_1600/Enchanter's_Emblem.png" alt="Enchanter's Emblem">
+                        </div>
+                        <div class="item-name">Enchanter's Emblem</div>
+                    </div>
+                    
+                    <!-- Debuff Reducer -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/vitality/1600/Debuff_Reducer.png" alt="Debuff Reducer">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Debuff Reducer</div>
+                            <img src="images/vitality/hv_1600/Debuff_Reducer.png" alt="Debuff Reducer">
+                        </div>
+                        <div class="item-name">Debuff Reducer</div>
+                    </div>
+                    
+                    <!-- Bullet Lifesteal -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/vitality/1600/Bullet_Lifesteal.png" alt="Bullet Lifesteal">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Bullet Lifesteal</div>
+                            <img src="images/vitality/hv_1600/Bullet_Lifesteal.png" alt="Bullet Lifesteal">
+                        </div>
+                        <div class="item-name">Bullet Lifesteal</div>
+                    </div>
+                    
+                    <!-- Battle Vest -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/vitality/1600/Battle_Vest.png" alt="Battle Vest">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Battle Vest</div>
+                            <img src="images/vitality/hv_1600/Battle_Vest.png" alt="Battle Vest">
+                        </div>
+                        <div class="item-name">Battle Vest</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 3200 Gold Section -->
+            <div class="price-category">
+                <h3 class="price-title">$ 3200 Gold</h3>
+                <div class="items-grid">
+                    <!-- Bullet Resilience -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/vitality/3200/Bullet_Resilience.png" alt="Bullet Resilience">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Bullet Resilience</div>
+                            <img src="images/vitality/hv_3200/Bullet_Resilience.png" alt="Bullet Resilience">
+                        </div>
+                        <div class="item-name">Bullet Resilience</div>
+                    </div>
+                    
+                    <!-- Counterspell -->
+                    <div class="item">
+                        <div class="active-badge">ACTIVE</div>
+                        <div class="item-image">
+                            <img src="images/vitality/3200/Counterspell.png" alt="Counterspell">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Counterspell</div>
+                            <img src="images/vitality/hv_3200/Counterspell.png" alt="Counterspell">
+                        </div>
+                        <div class="item-name">Counterspell</div>
+                    </div>
+                    
+                    <!-- Debuff Remover -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/vitality/3200/Debuff_Remover.png" alt="Debuff Remover">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Debuff Remover</div>
+                            <img src="images/vitality/hv_3200/Debuff_Remover.png" alt="Debuff Remover">
+                        </div>
+                        <div class="item-name">Debuff Remover</div>
+                    </div>
+                    
+                    <!-- Fortitude -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/vitality/3200/Fortitude.png" alt="Fortitude">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Fortitude</div>
+                            <img src="images/vitality/hv_3200/Fortitude.png" alt="Fortitude">
+                        </div>
+                        <div class="item-name">Fortitude</div>
+                    </div>
+                    
+                    <!-- Fury Trance -->
+                    <div class="item">
+                        <div class="active-badge">ACTIVE</div>
+                        <div class="item-image">
+                            <img src="images/vitality/3200/Fury_Trance.png" alt="Fury Trance">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Fury Trance</div>
+                            <img src="images/vitality/hv_3200/Fury_Trance.png" alt="Fury Trance">
+                        </div>
+                        <div class="item-name">Fury Trance</div>
+                    </div>
+                    
+                    <!-- Lifestrike -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/vitality/3200/Lifestrike.png" alt="Lifestrike">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Lifestrike</div>
+                            <img src="images/vitality/hv_3200/Lifestrike.png" alt="Lifestrike">
+                        </div>
+                        <div class="item-name">Lifestrike</div>
+                    </div>
+                    
+                    <!-- Majestic Leap -->
+                    <div class="item">
+                        <div class="active-badge">ACTIVE</div>
+                        <div class="item-image">
+                            <img src="images/vitality/3200/Majestic_Leap.png" alt="Majestic Leap">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Majestic Leap</div>
+                            <img src="images/vitality/hv_3200/Majestic_Leap.png" alt="Majestic Leap">
+                        </div>
+                        <div class="item-name">Majestic Leap</div>
+                    </div>
+                    
+                    <!-- Metal Skin -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/vitality/3200/Metal_Skin.png" alt="Metal Skin">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Metal Skin</div>
+                            <img src="images/vitality/hv_3200/Metal_Skin.png" alt="Metal Skin">
+                        </div>
+                        <div class="item-name">Metal Skin</div>
+                    </div>
+                    
+                    <!-- Rescue Beam -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/vitality/3200/Rescue_Beam.png" alt="Rescue Beam">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Rescue Beam</div>
+                            <img src="images/vitality/hv_3200/Rescue_Beam.png" alt="Rescue Beam">
+                        </div>
+                        <div class="item-name">Rescue Beam</div>
+                    </div>
+                    
+                    <!-- Spirit Resilience -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/vitality/3200/Spirit_Resilience.png" alt="Spirit Resilience">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Spirit Resilience</div>
+                            <img src="images/vitality/hv_3200/Spirit_Resilience.png" alt="Spirit Resilience">
+                        </div>
+                        <div class="item-name">Spirit Resilience</div>
+                    </div>
+                    
+                    <!-- Stamina Mastery -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/vitality/3200/Stamina_Mastery.png" alt="Stamina Mastery">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Stamina Mastery</div>
+                            <img src="images/vitality/hv_3200/Stamina_Mastery.png" alt="Stamina Mastery">
+                        </div>
+                        <div class="item-name">Stamina Mastery</div>
+                    </div>
+                    
+                    <!-- Trophy Collector -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/vitality/3200/Trophy_Collector.png" alt="Trophy Collector">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Trophy Collector</div>
+                            <img src="images/vitality/hv_3200/Trophy_Collector.png" alt="Trophy Collector">
+                        </div>
+                        <div class="item-name">Trophy Collector</div>
+                    </div>
+                    
+                    <!-- Veil Walker -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/vitality/3200/Veil_Walker.png" alt="Veil Walker">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Veil Walker</div>
+                            <img src="images/vitality/hv_3200/Veil_Walker.png" alt="Veil Walker">
+                        </div>
+                        <div class="item-name">Veil Walker</div>
+                    </div>
+                    
+                    <!-- Warp Stone -->
+                    <div class="item">
+                        <div class="active-badge">ACTIVE</div>
+                        <div class="item-image">
+                            <img src="images/vitality/3200/Warp_Stone.png" alt="Warp Stone">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Warp Stone</div>
+                            <img src="images/vitality/hv_3200/Warp_Stone.png" alt="Warp Stone">
+                        </div>
+                        <div class="item-name">Warp Stone</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 6400 Gold Section -->
+            <div class="price-category">
+                <h3 class="price-title">$ 6400 Gold</h3>
+                <div class="items-grid">
+                    <!-- Cheat Death -->
+                    <div class="item">
+                        <div class="active-badge">ACTIVE</div>
+                        <div class="item-image">
+                            <img src="images/vitality/6400/Cheat_Death.png" alt="Cheat Death">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Cheat Death</div>
+                            <img src="images/vitality/hv_6400/Cheat_Death.png" alt="Cheat Death">
+                        </div>
+                        <div class="item-name">Cheat Death</div>
+                    </div>
+                    
+                    <!-- Colossus -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/vitality/6400/Colossus.png" alt="Colossus">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Colossus</div>
+                            <img src="images/vitality/hv_6400/Colossus.png" alt="Colossus">
+                        </div>
+                        <div class="item-name">Colossus</div>
+                    </div>
+                    
+                    <!-- Divine Barrier -->
+                    <div class="item">
+                        <div class="active-badge">ACTIVE</div>
+                        <div class="item-image">
+                            <img src="images/vitality/6400/Divine_Barrier.png" alt="Divine Barrier">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Divine Barrier</div>
+                            <img src="images/vitality/hv_6400/Divine_Barrier.png" alt="Divine Barrier">
+                        </div>
+                        <div class="item-name">Divine Barrier</div>
+                    </div>
+                    
+                    <!-- Diviner's Kevlar -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/vitality/6400/Diviner's_Kevlar.png" alt="Diviner's Kevlar">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Diviner's Kevlar</div>
+                            <img src="images/vitality/hv_6400/Diviner's_Kevlar.png" alt="Diviner's Kevlar">
+                        </div>
+                        <div class="item-name">Diviner's Kevlar</div>
+                    </div>
+                    
+                    <!-- Healing Tempo -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/vitality/6400/Healing_Tempo.png" alt="Healing Tempo">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Healing Tempo</div>
+                            <img src="images/vitality/hv_6400/Healing_Tempo.png" alt="Healing Tempo">
+                        </div>
+                        <div class="item-name">Healing Tempo</div>
+                    </div>
+                    
+                    <!-- Infuser -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/vitality/6400/Infuser.png" alt="Infuser">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Infuser</div>
+                            <img src="images/vitality/hv_6400/Infuser.png" alt="Infuser">
+                        </div>
+                        <div class="item-name">Infuser</div>
+                    </div>
+                    
+                    <!-- Inhibitor -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/vitality/6400/Inhibitor.png" alt="Inhibitor">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Inhibitor</div>
+                            <img src="images/vitality/hv_6400/Inhibitor.png" alt="Inhibitor">
+                        </div>
+                        <div class="item-name">Inhibitor</div>
+                    </div>
+                    
+                    <!-- Juggernaut -->
+                    <div class="item">
+                        <div class="active-badge">ACTIVE</div>
+                        <div class="item-image">
+                            <img src="images/vitality/6400/Juggernaut.png" alt="Juggernaut">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Juggernaut</div>
+                            <img src="images/vitality/hv_6400/Juggernaut.png" alt="Juggernaut">
+                        </div>
+                        <div class="item-name">Juggernaut</div>
+                    </div>
+                    
+                    <!-- Leech -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/vitality/6400/Leech.png" alt="Leech">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Leech</div>
+                            <img src="images/vitality/hv_6400/Leech.png" alt="Leech">
+                        </div>
+                        <div class="item-name">Leech</div>
+                    </div>
+                    
+                    <!-- Phantom Strike -->
+                    <div class="item">
+                        <div class="active-badge">ACTIVE</div>
+                        <div class="item-image">
+                            <img src="images/vitality/6400/Phantom_Strike.png" alt="Phantom Strike">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Phantom Strike</div>
+                            <img src="images/vitality/hv_6400/Phantom_Strike.png" alt="Phantom Strike">
+                        </div>
+                        <div class="item-name">Phantom Strike</div>
+                    </div>
+                    
+                    <!-- Plated Armor -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/vitality/6400/Plated_Armor.png" alt="Plated Armor">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Plated Armor</div>
+                            <img src="images/vitality/hv_6400/Plated_Armor.png" alt="Plated Armor">
+                        </div>
+                        <div class="item-name">Plated Armor</div>
+                    </div>
+                    
+                    <!-- Siphon Bullets -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/vitality/6400/Siphon_Bullets.png" alt="Siphon Bullets">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Siphon Bullets</div>
+                            <img src="images/vitality/hv_6400/Siphon_Bullets.png" alt="Siphon Bullets">
+                        </div>
+                        <div class="item-name">Siphon Bullets</div>
+                    </div>
+                    
+                    <!-- Spellbreaker -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/vitality/6400/Spellbreaker.png" alt="Spellbreaker">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Spellbreaker</div>
+                            <img src="images/vitality/hv_6400/Spellbreaker.png" alt="Spellbreaker">
+                        </div>
+                        <div class="item-name">Spellbreaker</div>
+                    </div>
+                    
+                    <!-- Unstoppable -->
+                    <div class="item">
+                        <div class="active-badge">ACTIVE</div>
+                        <div class="item-image">
+                            <img src="images/vitality/6400/Unstoppable.png" alt="Unstoppable">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Unstoppable</div>
+                            <img src="images/vitality/hv_6400/Unstoppable.png" alt="Unstoppable">
+                        </div>
+                        <div class="item-name">Unstoppable</div>
+                    </div>
+                    
+                    <!-- Vampiric Burst -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/vitality/6400/Vampiric_Burst.png" alt="Vampiric Burst">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Vampiric Burst</div>
+                            <img src="images/vitality/hv_6400/Vampiric_Burst.png" alt="Vampiric Burst">
+                        </div>
+                        <div class="item-name">Vampiric Burst</div>
+                    </div>
+                    
+                    <!-- Witchmail -->
+                    <div class="item">
+                        <div class="item-image">
+                            <img src="images/vitality/6400/Witchmail.png" alt="Witchmail">
+                        </div>
+                        <div class="mega-hover-image">
+                            <div class="mega-hover-title">Witchmail</div>
+                            <img src="images/vitality/hv_6400/Witchmail.png" alt="Witchmail">
+                        </div>
+                        <div class="item-name">Witchmail</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Load item relationships from localStorage set by admin panel
+        let itemRelationships = {};
+        
+        // Load relationships from localStorage first
+        loadFromLocalStorage();
+        
+        // Set up highlighting if we have relationships
+        if (Object.keys(itemRelationships).length > 0) {
+            setupRelationshipHighlighting();
+        } else {
+            console.log('No relationship data available for vitality items - create relationships in the admin panel');
+        }
+        
+        // Function to load from localStorage as fallback
+        function loadFromLocalStorage() {
+            // Check if we have saved relationships in localStorage
+            const savedVitalityRelationships = localStorage.getItem('vitalityRelationships');
+            if (savedVitalityRelationships) {
+                try {
+                    const adminRelationships = JSON.parse(savedVitalityRelationships);
+                    if (adminRelationships && Object.keys(adminRelationships).length > 0) {
+                        itemRelationships = adminRelationships;
+                        console.log('Loaded vitality relationships from localStorage set by admin panel');
+                    }
+                } catch (e) {
+                    console.error('Error loading saved relationships:', e);
+                }
+            }
+        }
+        
+        // Function to load relationships from a file
+        function loadRelationshipsFromFile() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            
+            input.onchange = e => {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                
+                reader.onload = function(event) {
+                    try {
+                        const importedData = JSON.parse(event.target.result);
+                        
+                        // Check if it's the standalone format
+                        if (importedData.format === "standalone" && importedData.data) {
+                            const relationships = importedData.data;
+                            if (relationships.vitality) {
+                                itemRelationships = relationships.vitality;
+                                alert('Relationship data loaded successfully!');
+                                
+                                // If you want to save it to localStorage
+                                localStorage.setItem('vitalityRelationships', JSON.stringify(itemRelationships));
+                            } else {
+                                alert('Invalid data format: missing vitality data');
+                            }
+                        } 
+                        // Check if it's the admin export format
+                        else if (importedData.vitality) {
+                            itemRelationships = importedData.vitality;
+                            alert('Relationship data loaded successfully!');
+                            
+                            // If you want to save it to localStorage
+                            localStorage.setItem('vitalityRelationships', JSON.stringify(itemRelationships));
+                        } else {
+                            alert('Invalid relationship data format');
+                        }
+                    } catch (error) {
+                        alert('Error parsing the import file: ' + error.message);
+                    }
+                };
+                
+                reader.readAsText(file);
+            };
+            
+            input.click();
+        }
+        
+        // Add import button to the page
+        window.addEventListener('load', function() {
+            const importBtn = document.createElement('button');
+            importBtn.textContent = 'Import Relationship Data';
+            importBtn.className = 'import-btn';
+            importBtn.style.position = 'fixed';
+            importBtn.style.bottom = '20px';
+            importBtn.style.right = '20px';
+            importBtn.style.zIndex = '1000';
+            importBtn.style.backgroundColor = '#4caf50';
+            importBtn.style.color = '#000';
+            importBtn.style.border = 'none';
+            importBtn.style.padding = '10px 15px';
+            importBtn.style.borderRadius = '4px';
+            importBtn.style.cursor = 'pointer';
+            importBtn.style.fontWeight = 'bold';
+            importBtn.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
+            
+            importBtn.addEventListener('click', loadRelationshipsFromFile);
+            
+            document.body.appendChild(importBtn);
+        });
+
+        // Position hover images to appear next to the item
+        function setupSmartHover() {
+            const items = document.querySelectorAll('.item');
+            
+            items.forEach(item => {
+                const hoverImage = item.querySelector('.mega-hover-image');
+                
+                item.addEventListener('mouseenter', function(e) {
+                    if (!hoverImage) return;
+                    
+                    // Get item position
+                    const itemRect = item.getBoundingClientRect();
+                    const viewportWidth = window.innerWidth;
+                    const viewportHeight = window.innerHeight;
+                    
+                    // Reset any previous positioning
+                    hoverImage.style.top = '';
+                    hoverImage.style.right = '';
+                    hoverImage.style.bottom = '';
+                    hoverImage.style.left = '';
+                    hoverImage.style.transform = '';
+                    
+                    // Calculate position - we want it to appear next to the item
+                    // Check if there's more space on the right or left
+                    const spaceOnRight = viewportWidth - (itemRect.left + itemRect.width);
+                    const spaceOnLeft = itemRect.left;
+                    
+                    // Set a small offset
+                    const offset = 15;
+                    
+                    if (spaceOnRight >= 300) {
+                        // Position to the right
+                        hoverImage.style.left = `${itemRect.width + offset}px`;
+                        hoverImage.style.top = `-10px`;
+                    } else if (spaceOnLeft >= 300) {
+                        // Position to the left
+                        hoverImage.style.right = `${itemRect.width + offset}px`;
+                        hoverImage.style.top = `-10px`;
+                    } else {
+                        // Not enough space on either side, position above or below
+                        const spaceAbove = itemRect.top;
+                        const spaceBelow = viewportHeight - (itemRect.top + itemRect.height);
+                        
+                        if (spaceBelow >= 300) {
+                            // Position below
+                            hoverImage.style.top = `${itemRect.height + offset}px`;
+                            hoverImage.style.left = `50%`;
+                            hoverImage.style.transform = `translateX(-50%)`;
+                        } else {
+                            // Position above
+                            hoverImage.style.bottom = `${itemRect.height + offset}px`;
+                            hoverImage.style.left = `50%`;
+                            hoverImage.style.transform = `translateX(-50%)`;
+                        }
+                    }
+                });
+            });
+        }
+
+        // Search functionality
+        document.querySelector('.search-button').addEventListener('click', function() {
+            const searchTerm = prompt('Search for an item:');
+            if (searchTerm && searchTerm.length > 2) {
+                searchItems(searchTerm.toLowerCase());
+            }
+        });
+
+        function searchItems(term) {
+            const items = document.querySelectorAll('.item');
+            let found = false;
+            
+            document.body.classList.add('highlight-mode');
+            
+            items.forEach(item => {
+                const itemName = item.querySelector('.item-name').textContent.toLowerCase();
+                if (itemName.includes(term)) {
+                    item.classList.add('highlighted');
+                    found = true;
+                } else {
+                    item.classList.remove('highlighted');
+                }
+            });
+            
+            if (!found) {
+                alert('No items found matching your search.');
+                document.body.classList.remove('highlight-mode');
+            }
+        }
+        
+        // Clear search highlighting when clicking elsewhere
+        document.addEventListener('click', function(e) {
+            if (document.body.classList.contains('highlight-mode') && 
+                !e.target.closest('.search-button') && 
+                !e.target.closest('.highlighted') &&
+                !e.target.closest('.item.active-item')) {
+                document.body.classList.remove('highlight-mode');
+                document.querySelectorAll('.item.highlighted').forEach(item => {
+                    item.classList.remove('highlighted');
+                });
+                document.querySelectorAll('.item.active-item').forEach(item => {
+                    item.classList.remove('active-item');
+                });
+            }
+        });
+
+        // Add relationship highlighting functionality
+        document.querySelectorAll('.item').forEach(item => {
+            item.addEventListener('click', function() {
+                const itemName = this.querySelector('.item-name').textContent;
+                
+                // Toggle active state for this item
+                const wasActive = this.classList.contains('active-item');
+                
+                // Clear all highlights first
+                document.body.classList.remove('highlight-mode');
+                document.querySelectorAll('.item.highlighted, .item.active-item').forEach(i => {
+                    i.classList.remove('highlighted');
+                    i.classList.remove('active-item');
+                });
+                
+                // If the item wasn't active before, activate it and its relationships
+                if (!wasActive) {
+                    document.body.classList.add('highlight-mode');
+                    this.classList.add('active-item');
+                    this.classList.add('highlighted');
+                    
+                    // Find and highlight related items
+                    if (itemRelationships[itemName]) {
+                        itemRelationships[itemName].forEach(relatedName => {
+                            document.querySelectorAll('.item').forEach(potentialRelated => {
+                                if (potentialRelated.querySelector('.item-name').textContent === relatedName) {
+                                    potentialRelated.classList.add('highlighted');
+                                }
+                            });
+                        });
+                    }
+                }
+            });
+        });
+        
+        // Handle hover issues on mobile
+        if ('ontouchstart' in window) {
+            document.querySelectorAll('.item').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    // Toggle active state
+                    const wasActive = this.classList.contains('touch-active');
+                    
+                    // Remove active state from all other items
+                    document.querySelectorAll('.item.touch-active').forEach(activeItem => {
+                        activeItem.classList.remove('touch-active');
+                    });
+                    
+                    // If this wasn't the active item, make it active
+                    if (!wasActive) {
+                        this.classList.add('touch-active');
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }
+                });
+            });
+            
+            // Close on tap elsewhere
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.item')) {
+                    document.querySelectorAll('.item.touch-active').forEach(activeItem => {
+                        activeItem.classList.remove('touch-active');
+                    });
+                }
+            });
+        }
+
+        // Preload all images to prevent flickering on hover
+        function preloadImages() {
+            const items = document.querySelectorAll('.item');
+            
+            items.forEach(item => {
+                const normalImg = item.querySelector('.item-image img');
+                const hoverImg = item.querySelector('.mega-hover-image img');
+                
+                if (normalImg && normalImg.src) {
+                    const preloadNormalImg = new Image();
+                    preloadNormalImg.src = normalImg.src;
+                }
+                
+                if (hoverImg && hoverImg.src) {
+                    const preloadHoverImg = new Image();
+                    preloadHoverImg.src = hoverImg.src;
+                }
+            });
+        }
+        
+        // Highlight related items
+        function setupRelationshipHighlighting() {
+            const items = document.querySelectorAll('.item');
+            
+            // If we don't have any relationships data, don't set up highlighting
+            if (!itemRelationships || Object.keys(itemRelationships).length === 0) {
+                console.log('No relationship data available for vitality items');
+                return;
+            }
+            
+            console.log('Setting up relationship highlighting for vitality items with data:', itemRelationships);
+            
+            items.forEach(item => {
+                const itemName = item.querySelector('.item-name').textContent.trim();
+                
+                item.addEventListener('mouseenter', () => {
+                    // Add highlight mode to the body
+                    document.body.classList.add('highlight-mode');
+                    
+                    // Highlight this item
+                    item.classList.add('highlighted');
+                    
+                    // Check if this item has related items
+                    if (itemRelationships[itemName]) {
+                        // Find and highlight related items
+                        const relatedItems = itemRelationships[itemName];
+                        
+                        items.forEach(otherItem => {
+                            const otherItemName = otherItem.querySelector('.item-name').textContent.trim();
+                            if (relatedItems.includes(otherItemName)) {
+                                otherItem.classList.add('highlighted');
+                            }
+                        });
+                    }
+                });
+                
+                item.addEventListener('mouseleave', () => {
+                    // Remove highlight mode
+                    document.body.classList.remove('highlight-mode');
+                    
+                    // Remove highlighted class from all items
+                    document.querySelectorAll('.item.highlighted').forEach(highlightedItem => {
+                        highlightedItem.classList.remove('highlighted');
+                    });
+                });
+            });
+        }
+
+        // Initialize all functionality
+        window.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                document.querySelector('.loading').style.opacity = '0';
+                setTimeout(function() {
+                    document.querySelector('.loading').style.display = 'none';
+                }, 500);
+            }, 800);
+            
+            // Initialize all functionality
+            preloadImages();
+            // setupRelationshipHighlighting will be called after loading data
+            setupSmartHover();
+        });
+    </script>
+</body>
+</html>
